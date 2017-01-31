@@ -1,4 +1,4 @@
-((window, document) {
+((window, document) => {
 
     /**
      * AloePups
