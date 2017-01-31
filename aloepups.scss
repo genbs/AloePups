@@ -1,13 +1,13 @@
+//////////////////////////////
+
 @import 'aloepups.helpers';
 
 //////////////////////////////
 
-// writing configs
-@include appendConfigs();
+@include appendConfigs(); // writing configs
 
 //////////////////////////////
 
-// writing class
-@import 'spacings/spacings';
+@import 'aloepups.physical';
 
 //////////////////////////////
