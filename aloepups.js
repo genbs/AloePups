@@ -1,6 +1,4 @@
-((window) {
-
-    'use strict'
+((window, document) {
 
     /**
      * AloePups
@@ -62,6 +60,11 @@
 
     //////////////////////////////
 
-    window.aloepups = new AloePups()
+    document
+        .addEventListener(
+            'DOMContentLoaded', () => window.aloepups = new AloePups()
+        )
 
-}(window))
+    //////////////////////////////
+
+}( window, document ))
