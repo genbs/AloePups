@@ -67,4 +67,4 @@
 
     //////////////////////////////
 
-}( window, document ))
+})( window, document )
