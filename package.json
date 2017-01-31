@@ -1,0 +1,23 @@
+{
+  "name": "aloepups",
+  "version": "1.0.0",
+  "description": "SASS Framework",
+  "main": "aloepups.js",
+  "scripts": {
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/genbs/AloePups.git"
+  },
+  "keywords": [
+    "SASS",
+    "Framework",
+    "css"
+  ],
+  "author": "Gennaro Bosone <gennaro.bs@gmail.com> (https://github.com/genbs)",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/genbs/AloePups/issues"
+  },
+  "homepage": "https://github.com/genbs/AloePups#readme"
+}
