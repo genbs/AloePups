@@ -23,9 +23,9 @@ $configs: (); // Inizializzazione variabile contentente le cofigurazioni
 @mixin aloepups()
 {
     @if(not global-variable-exists(pupsConfigs)) {
-        @warn "*****************************\n" +
-              "* pupsConfigs dosn't exist. *\n" +
-              "* Using default values.     *\n" +
+        @warn "*****************************\\n" +
+              "* pupsConfigs dosn't exist. *\\n" +
+              "* Using default values.     *\\n" +
               "*****************************";
         $pupsConfigs: () !global;
     }
