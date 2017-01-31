@@ -1,0 +1,35 @@
+//////////////////////////////
+
+@function prepareMedia($media)
+{
+    $mq: '';
+
+    @if(map-has-key($media, 'type')){
+        $mq:    map-get($media, 'type');
+        $media: map-remove($media, 'type');
+    }
+
+    @each $key, $value in $media {
+        $key:   media-sanitize-key($key);
+        $value: media-sanitize-value($value, $key);
+
+        $mq: $mq +
+             if($mq != '', ' and ', '') +
+             if($value,'(#{$key}:#{$value})', '(#{$key})');
+    }
+
+    @return $mq;
+}
+
+//////////////////////////////
+
+@mixin breakpoint($medias...)
+{
+    $medias: map($medias, 'prepareMedia');
+    $medias: implode($medias, ',');
+
+    @media #{$medias}{
+        @content;
+    }
+
+}

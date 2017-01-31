@@ -1,0 +1,47 @@
+/**
+ * spacings: (
+ *      positions:(
+ *          all: (),
+ *          margin: (),
+ *          padding: ()
+ *      )
+ * )
+ */
+
+$configs: map-extend($configs, (
+
+    spacings : (
+
+        classPrefix: (
+            margin: 'mg',
+            padding: 'pd'
+        ),
+
+        sizes: (
+            '0'  : 0px,
+            'xs' : golden-section(1),
+            's'  : golden-section(4),
+            'm'  : golden-section(5),
+            'l'  : golden-section(6),
+            'xl' : golden-section(6) + golden-section(2)
+        ),
+
+        positions: (
+            all: '' '-t' '-b' '-l' '-r' '-tb' '-lr',
+        ),
+
+        transformation: (
+            ''    : '',
+            '-t'  : '-top',
+            '-b'  : '-bottom',
+            '-l'  : '-left',
+            '-r'  : '-right',
+            '-tb' : '-top' '-bottom',
+            '-lr' : '-left' '-right'
+        ),
+
+        only: (),
+        except: (),
+    )
+
+), true);

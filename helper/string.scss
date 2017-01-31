@@ -1,0 +1,52 @@
+@function explode($string, $delimiter: ' ')
+{
+	$result: ();
+	$remaining: $string;
+
+	$runnig: true;
+
+	@while $runnig {
+		$index: str-index($remaining, $delimiter);
+
+		@if $index {
+			$slice: str-slice($remaining, 1, $index - 1);
+			$result: append($result, $slice);
+			$remaining: str-slice($remaining, $index + str-length($delimiter));
+		} @else {
+			$runnig: false;
+		}
+	}
+	@return append($result, $remaining);
+}
+
+@function trim($string)
+{
+	$start: 1;
+	$end: str-length($string);
+
+	@for $i from 1 through str-length($string) {
+		$first: str-slice($string, $i, $i);
+		$last: str-slice($string, -$i, -$i);
+
+		@if $first == " " and $i + 1 == $start + 1 {
+			$start: $i + 1;
+		}
+
+		@if $last == " " and str-length($string) - $i == $end - 1 {
+			$end: str-length($string) - $i;
+		}
+	}
+
+	@return str-slice($string, $start, $end);
+}
+
+@function replace($string, $search, $replace: '')
+{
+  $index: str-index($string, $search);
+
+  @if $index {
+    @return str-slice($string, 1, $index - 1) + $replace + replace(str-slice($string, $index + str-length($search)), $search, $replace);
+  }
+
+  @return $string;
+}

@@ -1,0 +1,6 @@
+$configs: map-extend($configs, (
+    animation : (
+        base_speed: 3s,
+        easings: ()
+    ),
+), true);

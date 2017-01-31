@@ -1,0 +1,35 @@
+@function sp($spacing)
+{
+    @return ap('spacings.sizes.#{$spacing}');
+}
+
+@function gsp($spacing)
+{
+    @return ap('spacings.#{$spacing}');
+}
+
+@function getSpacings($type)
+{
+    @return if(map-has-key(gsp('positions'), $type)
+                , gsp('positions.#{$type}')
+                , ()
+            );
+}
+
+@function getGeneralSpacings()
+{
+    $positions: gsp('positions');
+
+    $positions: if(type-of($positions) == list
+                    , $positions
+                    , getSpacings('all')
+                );
+
+    @return $positions;
+}
+
+@function getPositionFromPrefix($prefix)
+{
+    @return gsp('transformation.#{$prefix}');
+}
+

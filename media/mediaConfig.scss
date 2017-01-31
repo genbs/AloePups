@@ -1,0 +1,24 @@
+/**
+ * Example MediaList<MediaItem>
+ * @type List<Map>
+ *
+    media: (
+        xs:    (max:480),
+        s:     (min:481, max:992),
+        mp:    (min:481, max:992, orientation: portrait),
+        ml:    (min:481, max:992, orientation: landscape),
+        l:     (min:1241, max:1440),
+        xl:    (min:1441, max:0),
+        mi:    (type: only screenm, max:992),
+        ma:    (type: screen, min:993),
+        dpx:   (min-resolution: 2dppx, color: true),
+        print: (type: print, monocrome: true),
+        media_default_unit: 'em'
+    );
+ *
+ */
+$configs: map-extend($configs, (
+    media : (
+        media_default_unit: 'px'
+    ),
+), true);

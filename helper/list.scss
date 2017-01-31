@@ -1,0 +1,30 @@
+@function toList($list)
+{
+    @return if(length($list) == 1, nth($list, 1), $list);
+}
+
+@function implode($list, $separator: '')
+{
+    $result: '';
+
+    @each $item in $list {
+        $result: $result + if(str-length($result) == 0, '' , $separator) + if(length($item) > 1, implode($item), $item);
+    }
+    @return unquote($result);
+}
+
+@function prefix($list, $prefix: '')
+{
+    @return $prefix + implode(toList($list), ', ' + $prefix);
+}
+
+@function map($list, $callable)
+{
+    $results: ();
+
+    @each $item in $list {
+        $results: append($results, call($callable, $item));
+    }
+
+    @return $results;
+}

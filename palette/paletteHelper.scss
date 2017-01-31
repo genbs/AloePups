@@ -1,0 +1,23 @@
+@function color($args...)
+{
+    @if(length($args) == 1){
+        @return ap('palette.' + nth($args, 1));
+    }
+    @else if(length($args) == 2){
+        @return call(nth($args, 2), nth($args, 1));
+    }
+    @else if(length($args) == 3){
+        @return call(nth($args, 1), nth($args, 2), nth($args, 3));
+    }
+
+    @return ap('palette.base');
+}
+
+@function triade-1($color, $delta: 120){ @return adjust-hue($color,  120); }
+@function triade-2($color, $delta: -120){ @return adjust-hue($color, -120); }
+
+@function adjacent-1($color, $delta: 30){ @return adjust-hue($color,  30); }
+@function adjacent-2($color, $delta: -30){ @return adjust-hue($color, -30); }
+
+
+//scale-color(hsl(120, 70%, 80%), $lightness: 50%) => hsl(120, 70%, 90%)

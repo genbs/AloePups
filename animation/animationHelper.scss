@@ -1,0 +1,21 @@
+@function animation-speed($speed: base_speed())
+{
+    @return ap('animation.speeds.' + $speed);
+}
+
+@function animation-easing($easing: base_easing())
+{
+    @return ap('animation.easings.' + $easing);
+}
+
+//////////////////////////////
+
+
+@function base_speed(){
+    @return ap('animation.base_speed');
+}
+@function base_easing(){
+    @return ap('animation.base_easing');
+}
+
+

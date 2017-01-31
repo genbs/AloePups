@@ -1,0 +1,46 @@
+$configs: (); // Inizializzazione variabile contentente le cofigurazioni
+
+/**
+ * Ritorna un valore di configurazione
+ */
+@function ap($config)
+{
+    @return map-deep-get($configs, explode($config, '.'));
+}
+
+@function version()
+{
+    @return map-get($aloepups, 'version');
+}
+
+
+/**
+ * Inizializzazione dell'applicazione
+ */
+
+@mixin aloepups()
+{
+    @if(not global-variable-exists(pupsConfigs)) {
+        @error "*****************************";
+        @error "* pupsConfigs dosn't exist. *";
+        @error "* Using default values.     *";
+        @error "*****************************";
+        $pupsConfigs: () !global;
+    }
+
+    $configs: map-extend($configs, $pupsConfigs, true) !global;
+
+
+    $aloepups: (
+        author: 'Gennaro Bosone',
+        email: 'gennaro.bs@gmail.com',
+        version: '0b1',
+        created_at: '2016-06-20',
+        update_at: '2016-06-21'
+    );
+}
+
+@mixin appendConfigs()
+{
+    #__aloepups{ content: toJSON($configs); }
+}

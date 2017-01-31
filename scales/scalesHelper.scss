@@ -1,0 +1,30 @@
+@function modular-scale($increment, $value: base(), $ratio: ratio())
+{
+	@for $i from 1 through $increment {
+		$value: if($increment > 0, $value * $ratio, $value / $ratio);
+	}
+
+	@return $value;
+}
+
+@function ms($increment, $value: base(), $ratio: ratio())
+{
+	@return modular-scale($increment, $value, $ratio);
+}
+
+@function golden-section($section)
+{
+	@return ap('scales.golden-sections.gld#{$section}');
+}
+
+//////////////////////////////
+
+@function base()
+{
+	@return ap('scales.base');
+}
+
+@function ratio($ratio: null)
+{
+	@return ap('scales.ratios.#{if($ratio, $ratio, ap("scales.ratio"))}');
+}

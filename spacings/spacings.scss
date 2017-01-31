@@ -1,0 +1,59 @@
+//////////////////////////////
+
+@mixin approveSpacing($class, $propertyPrefix, $prefixPosition, $size)
+{
+    $only: gsp('only');
+    $except: gsp('except');
+
+    @if(
+        (length($only) == 0 or index($only, $class) != null) and
+        (length($except) == 0 or index($except, $class) == null)
+    ){
+        .#{$class}{
+            @each $positionsProprerty in getPositionFromPrefix($prefixPosition)
+            {
+                #{$propertyPrefix}#{$positionsProprerty}: $size;
+            }
+        }
+    }
+}
+
+//////////////////////////////
+
+/**
+ *  General Class (margins, paddings)
+ */
+@each $prefixPosition in getGeneralSpacings()
+{
+    @each $prefixSize, $size in gsp('sizes')
+    {
+        @each $propertyPrefix, $classPrefix in gsp('classPrefix')
+        {
+            @include approveSpacing(
+                '#{$classPrefix}#{$prefixPosition}-#{$prefixSize}',
+                $propertyPrefix,
+                $prefixPosition,
+                $size
+            );
+        }
+    }
+}
+
+/**
+ *  Margins and Paddings
+ */
+@each $propertyPrefix, $classPrefix in gsp('classPrefix')
+{
+    @each $prefixPosition in getSpacings($propertyPrefix)
+    {
+        @each $prefixSize, $size in gsp('sizes')
+        {
+            @include approveSpacing(
+                '#{$classPrefix}#{$prefixPosition}-#{$prefixSize}',
+                $propertyPrefix,
+                $prefixPosition,
+                $size
+            );
+        }
+    }
+}

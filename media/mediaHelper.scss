@@ -1,0 +1,36 @@
+@function media-sanitize-key($key)
+{
+    @return if(
+        $key == 'min' or $key == 'max'
+        , $key + '-width'
+        , $key
+    );
+}
+
+@function media-sanitize-value($value, $key)
+{
+    @if($value == true){
+        @return null;
+    }
+
+    $value: if($key == 'min-width' or $key == 'max-width'
+                , if(unitless($value)
+                    , $value + ap('media.media_default_unit')
+                    , $value
+                )
+                , $value
+            );
+
+    @return $value;
+}
+
+
+//////////////////////////////
+
+@function mq($mediaPrefix){
+    @return ap('media.' + $mediaPrefix);
+}
+
+
+
+
