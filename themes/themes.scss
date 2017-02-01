@@ -1,4 +1,4 @@
-@mixin addTheme($themeName, $options)
+@function addTheme($themeName, $options)
 {
     @if(map-has-keys($options, "states"))
     {
