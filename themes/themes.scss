@@ -1,0 +1,40 @@
+@mixin addTheme($themeName, $options)
+{
+    @if(map-has-keys($options, "states"))
+    {
+        $states: map-get($options, "states");
+        $options: map-remove($options, "states");
+    }
+
+    $themes: map-merge($themes, (
+        $themeName: (
+            properties: $options,
+            states: $states
+        )
+    ));
+}
+
+//////////////////////////////
+
+@mixin setTheme($themeName)
+{
+    $theme: map-get($themes, $themeName);
+
+    addThemeProperties($themeName, map-get($theme, "properties"));
+
+    @each $state, $properties in map-get($theme, "states") {
+        addThemeProperties('#{$themeName}__#{state}', $properties);
+    }
+}
+
+@mixin setThemeProperties($classPrefix, $properties)
+{
+   &--#{$classPrefix} {
+        @each $property, $value in $properties {
+            #{$property}: #{$value}
+        }
+    }
+}
+
+//////////////////////////////
+
