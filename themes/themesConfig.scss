@@ -1,6 +1,12 @@
 $themes: ();
 
-$themesDefaultOptions: (
-    hover: false,
-    active: false
+$themesExtends: ();
+
+$THEME_VARIABLES: (
+    parents,
+    directParents,
+    childs,
+    directChilds,
+    states,
+    extend
 );

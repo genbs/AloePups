@@ -1,40 +1,196 @@
-@function addTheme($themeName, $options)
+@function addTheme($theme, $options, $extend: false)
 {
-    @if(map-has-keys($options, "states"))
-    {
-        $states: map-get($options, "states");
-        $options: map-remove($options, "states");
-    }
+    $options: sanitizeThemeOptions( $options, $extend );
 
-    $themes: map-merge($themes, (
-        $themeName: (
-            properties: $options,
-            states: $states
-        )
-    ));
+    $themes: map-merge( $themes, ( $theme: $options ) ) !global;
+
+    $parents: themeSetParentChildFromChild($theme);
+
+    $theme: themeGet($theme);
+
+    @return $theme;
 }
 
 //////////////////////////////
 
-@mixin setTheme($themeName)
+@mixin setTheme($theme)
 {
-    $theme: map-get($themes, $themeName);
+    @if not map-get( $themes, $theme ){
+        @error "Il tema #{$theme} non è stato trovato.";
+    } @else {
+        $parents: themeGetParents($theme);
+        $properties: themeGet($theme, "properties");
 
-    addThemeProperties($themeName, map-get($theme, "properties"));
+        @if $parents {
+            @debug "########################################################";
+            @debug "################### #{$theme} ####################";
+            @debug "########################################################";
+            @include setExtends($theme, $parents);
+        }
 
-    @each $state, $properties in map-get($theme, "states") {
-        addThemeProperties('#{$themeName}__#{state}', $properties);
+        @debug "Setto la classe base:";
+        @if themePropertiesLength($theme) > 0 {
+            @debug "#{$theme} {";
+            @debug "    @extend %#{$theme};";
+            @debug "}";
+            @extend %#{$theme};
+        }
     }
+
 }
 
-@mixin setThemeProperties($classPrefix, $properties)
+@mixin setExtends($rootTheme, $themes)
 {
-   &--#{$classPrefix} {
-        @each $property, $value in $properties {
-            #{$property}: #{$value}
+    @debug "========================================";
+    @debug "rootTheme: " + $rootTheme;
+    @debug "========================================";
+    @debug "padri: ";
+    @debug $themes;
+
+    @each $theme in $themes {
+
+        @if themePropertiesLength($theme) > 0 {
+            @debug "-----";
+            @debug "setto";
+            @debug "#{$rootTheme} {";
+            @debug "    @extend %#{$theme};";
+            @debug "}";
+            @debug "a #{$rootTheme}";
+
+            @extend %#{$theme};
         }
     }
 }
 
 //////////////////////////////
+
+@mixin compileThemes()
+{
+    @debug "compileThemes";
+
+    $rootThemes: themesGetRoot();
+
+    @each $theme in $rootThemes {
+        $r: eachTheme($theme);
+    }
+
+    @each $theme in map-keys($themes) {
+        @include eachExtends($theme);
+    }
+}
+
+//////////////////////////////
+
+@mixin eachExtends($theme)
+{
+    $result: false;
+    $childs: themeGetChilds($theme);
+
+    @include resolveExtends( $theme );
+
+    @if length( $childs ) > 0 {
+        @each $child in $childs {
+            @include resolveExtends( $child );
+        }
+    }
+}
+
+@mixin resolveExtends($theme)
+{
+    @if not index( $themesExtends, $theme ) {
+        $properties: themeGet( $theme, "properties" );
+
+        @debug "%#{$theme} {";
+        %#{$theme} {
+            @each $property, $value in $properties {
+                #{$property}: #{$value};
+                @debug "     #{$property}: #{$value};";
+            }
+        }
+        @debug "}";
+
+        $themesExtends: append( $themesExtends, $theme ) !global;
+    }
+}
+
+//////////////////////////////
+
+@function eachTheme($theme)
+{
+    $result: false;
+    $childs: themeGetDirectChilds( $theme );
+    $result: mergeTheme( $theme );
+
+    @if length( $childs ) > 0 {
+        $result: map($childs, "eachTheme");
+    }
+
+    @return $result;
+}
+
+@function mergeTheme($theme)
+{
+    @debug "---------- MERGE THEME: #{$theme} ----------";
+    $themeProperties: themeGet($theme, "properties");
+
+    $conflicts: mergeThemeEachProperties( $theme, $themeProperties );
+
+    @debug "conflicts:";
+    @debug $conflicts;
+
+    @each $parent, $parentConflicts in $conflicts {
+        $extendName: $parent + "__" + $theme;
+        // Salvo il nuovo tema
+        @debug "creo la classe " + $extendName;
+        $t: addTheme($extendName, $parentConflicts, true);
+
+        // Rimuovo i conflitti
+
+        @debug "Rimuovo le proprietà da " + $parent;
+        $t: themeRemoveProperties($parent, $parentConflicts);
+
+
+        @debug "Aggiungo la classe " + $extendName + " a #{$parent}";
+        $t: themeSetDirectParent($parent, $extendName);
+
+
+        // Aggiungo il nuovo tema ai figli (o ai fratelli di theme [tranne theme che ha la sua proprietà])
+
+        @debug "Aggiungo la classe " + $extendName + " a: ";
+        $t: themeSetWhereParentIs($parent, $extendName, $theme);
+        @debug $t;
+    }
+
+    @return null;
+}
+
+@function mergeThemeEachProperties($theme, $themeProperties)
+{
+    $result: ();
+    @each $property, $value in $themeProperties {
+        $parents: themeEachDirectParents($theme, "checkParentHasProperty", ($theme, $property));
+        @if $parents {
+            @each $parent in $parents {
+                //@debug "nel tema #{$theme} è presente la proprietà #{$property} che è settanta anche nel padre #{$parent} ";
+                $result: updateParentMatch($result, $parent, $property);
+            }
+        }
+    }
+    @return $result;
+}
+
+@function updateParentMatch($result, $parent, $property)
+{
+    $parentPropertyValue: themeGetProperty($parent, $property);
+
+    @if not map-has-key($result, $parent) {
+        $result: map-deep-set($result, $parent, ( $property: $parentPropertyValue ) );
+    } @else {
+        $resultProperties: map-deep-get($result, $parent);
+        $resultProperties: map-deep-set($resultProperties, $property, $parentPropertyValue);
+        $result: map-deep-set($result, $parent, $resultProperties);
+    }
+
+    @return $result;
+}
 

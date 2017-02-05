@@ -1,6 +1,29 @@
 @function toList($list)
 {
+    $type: type-of($list);
+    @return if( $type == "string" or $type == "number"
+        , ( $list )
+        , if( $type == "map"
+            , map-keys( $list )
+            , $list
+        )
+    );
+}
+
+@function toArgList($list)
+{
     @return if(length($list) == 1, nth($list, 1), $list);
+}
+
+@function filter( $array )
+{
+    $result: ();
+    @each $item in $array {
+        @if $item != null {
+            $result: append( $result, $item );
+        }
+    }
+    @return $result;
 }
 
 @function implode($list, $separator: '')
@@ -13,9 +36,9 @@
     @return unquote($result);
 }
 
-@function prefix($list, $prefix: '')
+@function prefix($list, $prefix: '', $join: ', ')
 {
-    @return $prefix + implode(toList($list), ', ' + $prefix);
+    @return $prefix + implode( toList($list), $join + $prefix );
 }
 
 @function map($list, $callable)
@@ -27,4 +50,74 @@
     }
 
     @return $results;
+}
+
+@function listDiff($lists...)
+{
+    $result: ();
+    $list: nth($lists, 1);
+
+    @each $item in $list {
+        $found: false;
+        @each $list2 in $lists {
+            @if $list2 != $list and index( $list2, $item ) != null and index( $result, $item ) == null {
+                $found: true;
+            }
+        }
+        @if not $found {
+            $result: append($result, $item);
+        }
+    }
+
+    @return $result;
+}
+
+//////////////////////////////
+
+$default-sort-order: a b c d e f g h i j k l m n o p q r s t u v w x y z !default;
+
+@function str-compare($string-a, $string-b, $order: $default-sort-order)
+{
+    $string-a: to-lower-case($string-a + unquote(""));
+    $string-b: to-lower-case($string-b + unquote(""));
+
+    @for $i from 1 through min(str-length($string-a), str-length($string-b))
+    {
+        $char-a: str-slice($string-a, $i, $i);
+        $char-b: str-slice($string-b, $i, $i);
+
+        @if $char-a and $char-b and index($order, $char-a) != index($order, $char-b) {
+            @return index($order, $char-a) < index($order, $char-b);
+        }
+    }
+
+    @return str-length($string-a) < str-length($string-b);
+}
+
+@function swap($list, $index-a, $index-b)
+{
+    @if abs($index-a) > length($list) or abs($index-b) > length($list) {
+        @return $list;
+    }
+
+    $tmp: nth($list, $index-a);
+    $list: set-nth($list, $index-a, nth($list, $index-b));
+    $list: set-nth($list, $index-b, $tmp);
+    @return $list;
+}
+
+@function sort($list, $order: $default-sort-order)
+{
+    @for $i from 1 through length($list)
+    {
+        @for $j from $i * -1 through -1
+        {
+            $j: abs($j);
+            @if $j > 1 and str-compare(nth($list, $j), nth($list, $j - 1), $order) {
+                $list: swap($list, $j, $j - 1);
+            }
+        }
+    }
+
+    @return $list;
 }

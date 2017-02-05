@@ -1,6 +1,6 @@
 @function map-deep-get($map, $keys...)
 {
-    $keys: toList($keys);
+    $keys: toArgList($keys);
 
     @each $key in $keys {
         @if(not map-has-key($map, $key)){
@@ -14,7 +14,7 @@
 
 @function map-deep-set($map, $keys.../*, $value */)
 {
-    $keys: toList($keys);
+    $keys: toArgList($keys);
 
     $map-list: ($map,);
     $result: null;
@@ -34,6 +34,7 @@
     @return $result;
 }
 
+//////////////////////////////
 
 @function map-depth($map)
 {
@@ -48,31 +49,42 @@
     @return $level;
 }
 
-@function map-has-keys($map, $keys...)
-{
-    $keys: toList($keys);
+//////////////////////////////
 
-    @each $key in $keys {
-        @if not map-has-key($map, $key) {
+@function map-has-equal-keys($map1, $map2, $exclude: ())
+{
+    $keys1: map-get-keys-dotted($map1, $exclude);
+    $keys2: map-get-keys-dotted($map2, $exclude);
+
+    @each $key in $keys2 {
+        @if (
+            index($exclude, $key) == null and
+            index($keys1, $key) != null
+        ){
             @return false;
         }
     }
-
     @return true;
 }
 
-@function map-has-nested-keys($map, $keys...)
+@function map-get-keys-dotted($map, $exclude: ())
 {
-    $keys: toList($keys);
+    $return: ();
 
-    @each $key in $keys {
-        @if not map-has-key($map, $key) {
-            @return false;
+    @each $key, $value in $map {
+        @if( index($exclude, $key) == null ){
+            @if( type-of( $value ) == "map") {
+                $list: explode(prefix( map-get-keys-dotted( $value ), $key + ".", " "));
+                $return: join( $return, $list );
+            } @else if( type-of( $value ) == "list") {
+                $return: join( $return, $key );
+            } @else {
+                $return: append($return, $key);
+            }
         }
-        $map: map-get($map, $key);
     }
 
-    @return true;
+    @return sort($return);
 }
 
 @function map-zip($keys, $values)

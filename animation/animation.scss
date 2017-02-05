@@ -7,14 +7,14 @@
  * ), true)
  */
 @mixin transition($options: (all), $will-change: null){
-    @if(type-of($options) != map){
+    @if type-of($options) != "map" {
         $options: (property: $options);
     }
 
-    $property:    implode(map-get($options, property), ',');
-    $duration:    if(map-has-key($options, duration), implode(map-get($options, duration), ','), animation-speed());
-    $delay:       if(map-has-key($options, delay),    implode(map-get($options, delay), ','), null);
-    $easing:      if(map-has-key($options, easing),   implode(map-get($options, easing), ','), animation-easing());
+    $property: implode( map-get( $options, property ), ',' );
+    $duration: if(map-has-key($options, duration), implode(map-get($options, duration), ','), animation-speed());
+    $delay:    if(map-has-key($options, delay),    implode(map-get($options, delay), ','), null);
+    $easing:   if(map-has-key($options, easing),   implode(map-get($options, easing), ','), animation-easing());
 
     transition-property: $property;
     transition-duration: $duration;

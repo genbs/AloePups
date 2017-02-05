@@ -1,0 +1,248 @@
+/**
+ * Aggiunge un tema
+ * @param {String} $themeName Nome del tema
+ * @param {Map} $options   Opzioni del tema
+ *
+ * Esempio di $options: (
+ *     background: #000,
+ *     color: #fff,
+ *
+ *     states: (
+ *         hover: ( background: #444 ),
+ *         active: ( background: #400 )
+ *     )
+ * )
+ */
+@function addTheme($themeName, $themeOptions)
+{
+    $themeOptions: sanitizeThemeOptions( $themeOptions );
+    $themes: map-merge( $themes, ( $themeName: $themeOptions ) ) !global;
+
+    $t: addChild($themeName);
+
+    @return $themeName;
+}
+
+@function addChild($childName)
+{
+    $parentName: map-deep-get( $themes, $childName, "parent" );
+
+    @if $parentName {
+        $parentChilds: map-deep-get( $themes, $parentName, "childs" );
+        $themes: map-deep-set( $themes, $parentName, "childs", join($parentChilds, $childName)) !global;
+    }
+
+    @return true;
+}
+
+@function eachParent($themeName, $rootTheme)
+{
+    $themeOptions: map-get( $themes, $themeName );
+    $parentName: map-get( $themeOptions, "parent" );
+
+    @if type-of($parentName) == "list" {
+        @each $parent in $parentName {
+            $t: eachParent( $parent, $rootTheme );
+        }
+    } @else if $parentName {
+        $parentOptions: map-get( $themes, $parentName );
+        /*
+        $themeRootOptions: map-get( $themes, $rootTheme );
+        @if not map-has-equal-keys( $parentOptions, $themeRootOptions, $THEME_VARIABLES ) {
+            $themeRootOptions: mergeTheme($themeRootOptions, $parentOptions, $rootTheme, $parentName );
+        }
+        $themes: map-merge( $themes, ( $rootTheme: $themeRootOptions ) ) !global;
+        */
+        @if not map-has-equal-keys( $parentOptions, $themeOptions, $THEME_VARIABLES ) {
+            $themeRootOptions: mergeTheme($themeOptions, $parentOptions, $themeName, $parentName );
+        }
+        $themes: map-merge( $themes, ( $themeName: $themeOptions ) ) !global;
+
+        $parentName: map-get($themeOptions, "parent");
+        @if $parentName != null { $t: eachParent($parentName, $rootTheme); }
+    }
+    @return true;
+}
+
+@function mergeTheme($themeOptions /* B */, $parentOptions /* A */, $themeName, $parentName)
+{
+
+    $themeProperties: map-get( $themeOptions, "properties" );
+    $parentProperties: map-get( $parentOptions, "properties" );
+    $parentOriginalProperties: map-deep-get( $parentOptions, "__original", "properties" );
+    $parentChilds: map-get( $parentOptions, "childs" );
+
+    $result: $themeProperties; /* A_B */
+
+    // Rimoizione delle proprietà del tema corrente dal padre
+    $parentPropertiesKeys: map-keys($parentProperties);
+
+    @each $key in $parentPropertiesKeys {
+        @if map-has-key( $themeProperties, $key ) {
+
+            $result: map-deep-set( $result, $key, map-get( $themeProperties, $key ) );
+            $parentPropertiesValue: map-get( $parentProperties, $key );
+
+
+            @each $child in $parentChilds {
+                @if $child != $themeName {
+
+                    @if not map-has-key( map-deep-get( $themes, $child, "properties" ), $key ) {
+                        $themes: map-deep-set( $themes, $child, "properties", $key, $parentPropertiesValue ) !global;
+                    }
+                }
+            }
+            // Update Parent
+            $newParentOptions: map-deep-set( $parentOptions, "__deleted", $key,  $parentPropertiesValue);
+            $parentProperties: map-remove( $parentProperties, $key );
+            $newParentOptions: map-deep-set( $newParentOptions, "properties", $parentProperties );
+            @debug "/////////////////////////// DELETED (" + $key + ": " + $parentPropertiesValue + ")////////////////////////////";
+            @debug $newParentOptions;
+            $themes: map-deep-set( $themes, $parentName, $newParentOptions ) !global; // Aggiorno A
+
+            //$themeProperties: map-remove( $themeProperties, $key );
+
+        }
+    }
+
+    //////////////////////////////
+
+    // Recupero proprietà originali del padre mancanti
+    /*
+    $parentCurrentOriginalProperties: listDiff(
+        map-keys($parentProperties),
+        map-keys($parentOriginalProperties)
+    );
+    $themePropertiesKeys: map-keys($themeProperties);
+
+
+    @each $property in $parentCurrentOriginalProperties {
+        @if index( $themePropertiesKeys, $property ) == null {
+            $themeProperties: map-deep-set(
+                $themeProperties,
+                $property,
+                map-get($parentOriginalProperties, $property)
+            );
+        }
+    }
+    @debug map-keys($themeProperties);
+    @debug "----------------";
+    */
+
+    //////////////////////////////
+
+
+    // Create diff classes
+    $newThemeName: $parentName + "__" + $themeName,;
+    $newThemeOptions: ( properties: $result, parent: null, states: () );
+    $themes: map-merge( $themes, ( $newThemeName: $newThemeOptions ) ) !global; // Creo A_B_1
+
+    //$newThemeOptions2: ( properties: $result2, parent: null, states: () );
+    //$themes: map-merge( $themes, ( $newThemeName2: $newThemeOptions2 ) ) !global; // Creo A_B_2
+
+    // Update current theme
+    //$themeOptions: map-deep-set( $themeOptions, "parent", ($parentName, $newThemeName2) );
+    $themeOptions: map-deep-set( $themeOptions, "properties", $themeProperties );
+    $themes: map-deep-set( $themes, $themeName, $themeOptions ) !global; // Creo A_B_2
+
+
+    @return $themeOptions;
+}
+
+@mixin createLogicTheme($themeName, $themeOptions)
+{
+    $properties: map-get($themeOptions, "properties");
+
+    %#{$themeName} {
+        @each $property, $value in $properties {
+            #{$property}: #{$value}
+        }
+    }
+}
+
+//////////////////////////////
+
+@mixin applyThemes()
+{
+    @debug $themes;
+
+    @each $themeName, $themeOptions in $themes {
+        $t: eachParent($themeName, $themeName);
+    }
+    @each $themeName, $themeOptions in $themes {
+        @include createLogicTheme($themeName, $themeOptions);
+    }
+
+    @debug $themes;
+}
+
+//////////////////////////////
+
+/**
+ * Setta un tema
+ */
+@mixin setTheme($themeName)
+{
+
+    @if( not map-has-key( $themes, $themeName ) ) {
+        @error "[AloePups:themes@setTheme] Impossibile applicare il tema #{$themeName}.";
+    }
+
+    $currentTheme: $themeName;
+    $theme: map-get( $themes, $themeName );
+
+    @include extendTheme($currentTheme);
+
+}
+
+@mixin extendTheme($currentTheme)
+{
+    $themeOptions: map-get( $themes, $currentTheme );
+
+    @if ( type-of($currentTheme) == "list" ) {
+        @each $listTheme in $currentTheme {
+            @include extendTheme($listTheme);
+        }
+    } @else {
+
+        @if length( map-keys( map-get( $themeOptions, "properties" ) ) ) > 0 {
+            @extend %#{$currentTheme};
+        }
+        @if length( map-keys( map-get( $themeOptions, "__deleted" ) ) ) > 0 {
+            $result: map-get( $themeOptions, "__deleted" );
+            $parentName: $currentTheme;
+
+            @debug "__deleted " + $currentTheme;
+
+            @while $parentName {
+                $parentOptions: map-get( $themes, $parentName );
+
+                @each $property, $value in map-get( $themeOptions, "__deleted" ) {
+                    @debug $property;
+                    @debug "s----";
+                    @debug $parentOptions;
+                    @debug map-get( $parentOptions, "properties");
+                    @debug "e----";
+                    @if map-has-key( map-get( $parentOptions, "properties" ), $property ){
+                        @debug "remove from result";
+                        $result: map-remove($result, $property );
+                    }
+                }
+                $parentName: map-get( $parentOptions, "parent" );
+            }
+            @debug $result;
+
+            @each $p, $v in $result {
+                #{$p}: #{$v};
+            }
+        }
+
+        $currentTheme: map-get( $themeOptions, "parent" );
+        @if( $currentTheme != null ){
+            @include extendTheme($currentTheme);
+        }
+    }
+}
+
+//////////////////////////////
+
