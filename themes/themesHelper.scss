@@ -1,254 +1,11 @@
-@function themeSetParentChildFromChild($child)
-{
-    $parents: themeGetDirectParents($child);
-
-    @if $parents != null {
-        @each $parent in $parents {
-            $childs: themeGet( $parent, "directChilds" );
-            $childs: if( not index( $childs, $child ), append( $childs, $child ), $childs );
-            $themes: themeSet( $parent, "directChilds", $childs ) !global;
-        }
-    }
-
-    $parents: themeGetParents($child);
-
-    @if $parents != null {
-        @each $parent in $parents {
-            $childs: themeGet( $parent, "childs" );
-            $childs: if( not index( $childs, $child ), append( $childs, $child ), $childs );
-            $themes: themeSet( $parent, "childs", $childs ) !global;
-        }
-    }
-
-    @return themeGetParents($child);
-}
-
-@function themeAddChilds($theme, $__childs...)
-{
-    $childs: themeGet( $theme, "childs" );
-    @each $child in $__childs {
-        $childs: if( not index( $childs, $child ), append( $childs, $child ), $childs );
-    }
-    $themes: themeSet( $theme, "childs", $childs ) !global;
-
-    @return $childs;
-}
-
-@function themeAddDirectChilds($theme, $__childs...)
-{
-    $childs: themeGet( $theme, "directChilds" );
-    @each $child in $__childs {
-        $childs: if( not index( $childs, $child ), append( $childs, $child ), $childs );
-    }
-    $themes: themeSet( $theme, "directChilds", $childs ) !global;
-
-    $t: themeAddChild($theme, $__childs);
-
-    @return $childs;
-}
-
-
-@function themeRemoveParentFromChild($theme, $parent)
-{
-    $childs: themesGetChilds($theme);
-
-    @each $child in $childs {
-        $t: themesRemoveParents($theme, $parent);
-    }
-
-    @return $childs;
-}
-
-@function themesRemoveParents($theme, $__parents...)
-{
-    $parents: themesGetParents($theme);
-    $parents: listDiff($parents, $__parents);
-    $themes: themeSet( $theme, "parents", $parents ) !global;
-    @return $parents;
-}
-
-//////////////////////////////
-
-@function themeIsExtend($theme)
-{
-    @return themeGet($theme, "extend") == true;
-}
-
-@function themesGetRoot()
-{
-    $result: ();
-
-    @each $theme, $options in $themes {
-        @if themeGetParents($theme) == null {
-            $result: append( $result, $theme );
-        }
-    }
-
-   @return $result;
-}
-
-//////////////////////////////
-
-@function themeEachDirectParents($theme, $callback, $arguments: ())
-{
-    $parents: themeGetDirectParents($theme);
-    $result: ();
-    //@debug "themeEachDirectParents #{$theme}";
-    //@debug $parents;
-
-    @if $parents {
-        @each $parent in $parents {
-            @if call($callback, $parent, $arguments...) != null {
-                //@debug "themeEachDirectParents | parent(#{$parent}) find";
-                $result: if( not index( $result, $parent ), append( $result, $parent ), $result );
-            } @else {
-                $result: join( $result, themeEachDirectParents($parent, $callback, $arguments));
-            }
-        }
-    }
-    @return $result;
-}
-
-//////////////////////////////
-
-@function themeSetParent($theme, $parent)
-{
-    $parents: themeGet( $theme, "parents" );
-
-    $parents: if( $parents, append( $parents, $parent ), ( $parent ) );
-
-    $themes: themeSet( $theme, "parents", $parents ) !global;
-
-    $r: themeAddChilds( $parent, ( $theme ) );
-
-    @return $parents;
-}
-
-@function themeSetDirectParent($theme, $parent)
-{
-    $parents: themeGet( $theme, "directParents" );
-
-    $parents: if( $parents, append( $parents, $parent ), ( $parent ) );
-
-    $themes: themeSet( $theme, "directParents", $parents ) !global;
-
-    $r: themeAddDirectChilds( $parent, ( $theme ) );
-
-    $r: themeSetParent($theme, $parent);
-
-    @return $parents;
-}
-
-@function themeSetWhereParentIs($parent, $extend, $excludeTheme)
-{
-    $result: ();
-    $exclude: join(($excludeTheme), themeGetChilds($excludeTheme));
-
-    @each $theme, $options in $themes {
-        $parents: themeGetParents($theme);
-        @if not index( $exclude, $theme) and index($parents, $parent)  {
-            $t: themeSetDirectParent($theme, $extend);
-            $result: append($result, $theme);
-        }
-    }
-    @return $result;
-}
-
-@function dump(){
-
-    @debug "{";
-    @each $theme, $options in $themes {
-        @debug "    \"#{$theme}\": {";
-
-        @each $p in ("directParents", "parents", "childs", "directChilds") {
-            $v: map-get($options, $p);
-            $v: if($v, $v, "null");
-            $v: if(type-of($v) == "list", implode($v, ","), $v);
-            @debug "        \"#{$p}\": " + $v;
-        }
-
-        @debug "    },";
-    }
-    @debug "}";
-
-    @return true;
-}
-
-@function checkParentHasProperty($parent, $theme, $property)
-{
-    $parentProperties: themeGet($parent, "properties");
-    $parentPropertiesKeys: map-keys($parentProperties);
-
-    @return index( $parentPropertiesKeys, $property );
-}
-
-
-@function themeRemoveProperties($theme, $properties)
-{
-    $properties: if( type-of($properties) == "map", map-keys( $properties ), $properties );
-    @each $property in $properties {
-        $themeProperties: themeGet( $theme, "properties" );
-        $themeProperties: map-remove($themeProperties, $property);
-
-        $themes: themeSet( $theme, "properties", $themeProperties ) !global;
-    }
-
-    @return true;
-}
-
-//////////////////////////////
-
-@function themePropertiesLength($theme)
-{
-    @return length( themeGet( $theme, "properties" ) );
-}
-
-//////////////////////////////
-
-@function themeGetParents($theme)
-{
-    @return themeGet( $theme, "parents" );
-}
-
-@function themeGetDirectParents($theme)
-{
-    @return themeGet( $theme, "directParents" );
-}
-
-@function themeGetChilds($theme)
-{
-    @return themeGet( $theme, "childs" )
-}
-@function themeGetDirectChilds($theme)
-{
-    @return themeGet( $theme, "directChilds" )
-}
-
-@function themeGetProperty($theme, $property)
-{
-    @return themeGet( $theme, "properties", $property );
-}
-
-//////////////////////////////
-
-@function themeGet($arguments...) {
-    @return call( "map-deep-get", $themes, $arguments );
-}
-
-@function themeSet($arguments...) {
-    @return call( "map-deep-set", $themes, $arguments );
-}
-
-//////////////////////////////
-
 /**
  * Costruzione dell'oggetto $options:
  * (
  *     properties: ( ..css properties ),
- *     states: (
- *         hover: ( ...css properties ),
- *         active: ( ...css properties )
- *     )
+ *     directParents: ...
+ *     parents: ...
+ *     directChilds: ...
+ *     childs: ...
  * )
  */
 @function sanitizeThemeOptions($options, $extend: false)
@@ -258,23 +15,13 @@
     }
 
     $properties: $options;
-    $states: ();
     $parents: null;
 
-    @if( map-has-key( $properties, "states" ) )
-    {
-        $states: map-get( $properties, "states" );
-        $properties: map-remove( $properties, "states" );
-    }
     @if( map-has-key( $properties, "parent" ) )
     {
-        $parents: ( map-get( $properties, "parent" ) );
+        $parent: map-get( $properties, "parent" );
+        $parents: if( type-of($parent) == "string", ( $parent ), $parent );
         $properties: map-remove( $properties, "parent" );
-    }
-    @if( map-has-key( $properties, "parents" ) )
-    {
-        $parents: map-get( $properties, "parents" );
-        $properties: map-remove( $properties, "parents" );
     }
 
     $directParents: $parents;
@@ -288,7 +35,6 @@
 
     $options: (
         properties: $properties,
-        states: $states,
         directParents: $directParents,
         parents: $parents,
         childs: (),
@@ -310,3 +56,123 @@
 }
 
 //////////////////////////////
+
+/**
+ * Aggiunge $child ai 'parent' settati in child
+ * @param  {theme} $child
+ */
+@function themeSetParentChildFromChild($child)
+{
+    @each $direct in (true, false) {
+        $parents: toList( themeGetParents( $child, $direct ) );
+
+        @each $parent in $parents {
+            $t: themeAddChilds( $direct, $parent, $child );
+        }
+    }
+
+    @return themeGet($child);
+}
+
+/**
+ * Aggiunge $extend alla lista dei parent di tutti i temi che hanno come parent $parent
+ * @param  {$theme} $parent       tema da cercare
+ * @param  {$theme} $extend       tema da aggiungere
+ * @param  {$theme} $excludeTheme tema a cui non verrà aggiunto $extend, ossia quello che ha generato la classe di conflitto
+ */
+@function themeSetWhereParentIs($parent, $extend, $excludeTheme)
+{
+    $result: ();
+    $exclude: join(($excludeTheme), themeGetChilds($excludeTheme));
+
+    @each $theme, $options in $themes {
+        $parents: themeGetParents($theme);
+        @if not index( $exclude, $theme) and index($parents, $parent)  {
+            $t: themeAddParents(true, $theme, $extend);
+            $result: append($result, $theme);
+        }
+    }
+    @return $result;
+}
+
+////////////////////////////////////////////////////////////
+//    Classi utili per la manipolazione delle proprietà
+////////////////////////////////////////////////////////////
+
+@function themeGetProperty( $theme, $property ) { @return map-get( themeGetProperties($theme), $property ); }
+@function themeGetProperties( $theme )          { @return themeGet( $theme, "properties" ); }
+@function themeHasProperty( $theme, $property ) { @return map-has-key( themeGetProperty($theme), $property ); }
+@function themePropertiesLength( $theme )       { @return length( themeGet( $theme, "properties" ) ); }
+
+@function themeRemoveProperties($theme, $properties)
+{
+    $properties: if( type-of($properties) == "map", map-keys( $properties ), $properties );
+
+    @each $property in $properties {
+        $themeProperties: themeGetProperties( $theme );
+        $themeProperties: map-remove($themeProperties, $property);
+
+        $t: themeSet( $theme, "properties", $themeProperties );
+    }
+
+    @return true;
+}
+
+//////////////////////////////
+
+@function themeGetParents($theme, $direct: false) { @return themeGet( $theme, if( $direct, "directParents", "parents" ) ); }
+@function themeGetChilds($theme, $direct: false) { @return themeGet( $theme, if( $direct, "directChilds", "childs" ) ); }
+
+@function themeAddParents($direct, $theme, $newParents...)
+{
+    $newParents: toArgList( $newParents );
+
+    $option: if($direct, "directParents", "parents");
+    $parents: toList(themeGet( $theme, $option ));
+
+    @each $parent in $newParents {
+        @if not index( $parents, $parent ) {
+            $parents: append( $parents, $parent );
+            $r: themeAddChilds( $direct, $parent, $theme );
+        }
+    }
+
+    $t: themeSet( $theme, $option, $parents );
+
+    @if $direct {
+        $r: themeAddParents(false, $theme, $newParents);
+    }
+
+    @return themeGet( $theme, $option );
+}
+
+@function themeAddChilds($direct, $theme, $newChilds...)
+{
+    $newChilds: toArgList( $newChilds );
+
+    $option: if($direct, "directChilds", "childs");
+    $childs: themeGet( $theme, $option );
+
+    @each $child in $newChilds {
+        $childs: if( not index( $childs, $child ), append( $childs, $child ), $childs );
+    }
+
+    $t: themeSet( $theme, $option, $childs );
+
+    @if $direct {
+        $t: themeAddChilds(false, $theme, $newChilds);
+    }
+
+    @return themeGet( $theme, $option );
+}
+
+//////////////////////////////
+
+@function themeGet($arguments...) {
+    @return call( "map-deep-get", $themes, $arguments );
+}
+
+@function themeSet($arguments...) {
+    $themes: map-deep-set( $themes, $arguments ) !global;
+    @return $themes;
+}

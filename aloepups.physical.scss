@@ -2,4 +2,10 @@
 ///  Only file to writing class  ///
 ////////////////////////////////////
 
-@import 'spacings/spacings';
+@import
+    'spacings/spacings';
+
+@import
+    'themes/themes',
+    'themes/themesConfig',
+    'themes/themesHelper';

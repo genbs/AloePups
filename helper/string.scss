@@ -1,3 +1,21 @@
+$__letters: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+
+@function str_random($count: 5)
+{
+	$l: str-length($__letters);
+	$str: "";
+
+	@for $i from 1 through $count {
+		$r: random($l);
+		$str: $str + str-slice($__letters, $r, $r);
+	}
+
+	@return $str;
+}
+
+/**
+ * Explode
+ */
 @function explode($string, $delimiter: ' ')
 {
 	$result: ();
@@ -19,6 +37,9 @@
 	@return append($result, $remaining);
 }
 
+/**
+ * Trim
+ */
 @function trim($string)
 {
 	$start: 1;
@@ -40,6 +61,9 @@
 	@return str-slice($string, $start, $end);
 }
 
+/**
+ * Replace
+ */
 @function replace($string, $search, $replace: '')
 {
   $index: str-index($string, $search);

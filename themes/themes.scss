@@ -1,194 +1,136 @@
-@function addTheme($theme, $options, $extend: false)
+/**
+ * Aggiunge un tema alla lista dei tempi.
+ * Nell'oggetto $options, se è contenuta la stringa o la lista con la chiave 'parent',
+ * verrà settato il tema corrente come figlio diretto dei 'parent' passati.
+ */
+@function ap-create-theme($theme, $options, $extend: false)
 {
-    $options: sanitizeThemeOptions( $options, $extend );
+    $themes: map-deep-set(
+        $themes,
+        $theme,
+        sanitizeThemeOptions( $options, $extend )
+    ) !global;
 
-    $themes: map-merge( $themes, ( $theme: $options ) ) !global;
-
-    $parents: themeSetParentChildFromChild($theme);
-
-    $theme: themeGet($theme);
-
-    @return $theme;
+    @return themeSetParentChildFromChild($theme);
 }
 
-//////////////////////////////
-
-@mixin setTheme($theme)
+/**
+ * Setta il tema all'elemento o alla classe.
+ * La mixin retituirà un errore se i temi non sono stati compilati
+ */
+@mixin ap-set-theme($theme)
 {
+    @if not $build__themes {
+        @error "Compilare i temi inserendo chimando la mixin \'ap-compile-themes()\' dopo aver creato tutti i temi e prima di settarli.";
+    }
+
     @if not map-get( $themes, $theme ){
         @error "Il tema #{$theme} non è stato trovato.";
-    } @else {
-        $parents: themeGetParents($theme);
-        $properties: themeGet($theme, "properties");
-
-        @if $parents {
-            @debug "########################################################";
-            @debug "################### #{$theme} ####################";
-            @debug "########################################################";
-            @include setExtends($theme, $parents);
-        }
-
-        @debug "Setto la classe base:";
-        @if themePropertiesLength($theme) > 0 {
-            @debug "#{$theme} {";
-            @debug "    @extend %#{$theme};";
-            @debug "}";
-            @extend %#{$theme};
-        }
     }
 
+    @include ap-extend( toList( themeGetParents($theme) ) );
+    @include ap-extend( $theme );
 }
 
-@mixin setExtends($rootTheme, $themes)
+/**
+ * Estende un tema solo se non ha la lista delle proprietà vuota
+ */
+@mixin ap-extend($themeOrList)
 {
-    @debug "========================================";
-    @debug "rootTheme: " + $rootTheme;
-    @debug "========================================";
-    @debug "padri: ";
-    @debug $themes;
-
-    @each $theme in $themes {
-
-        @if themePropertiesLength($theme) > 0 {
-            @debug "-----";
-            @debug "setto";
-            @debug "#{$rootTheme} {";
-            @debug "    @extend %#{$theme};";
-            @debug "}";
-            @debug "a #{$rootTheme}";
-
-            @extend %#{$theme};
+    @if type-of($themeOrList) == "list" {
+        @each $theme in $themeOrList {
+            @include ap-extend($theme);
         }
+    } @else if themePropertiesLength($themeOrList) > 0 {
+        @extend %#{$themeOrList};
     }
 }
 
-//////////////////////////////
-
-@mixin compileThemes()
+/**
+ * Compila i temi.
+ */
+@mixin ap-compile-themes()
 {
-    @debug "compileThemes";
-
-    $rootThemes: themesGetRoot();
-
-    @each $theme in $rootThemes {
-        $r: eachTheme($theme);
+    @each $theme in map-keys($themes) {
+        $r: resolveConflictsFor( $theme );
     }
 
     @each $theme in map-keys($themes) {
-        @include eachExtends($theme);
-    }
-}
-
-//////////////////////////////
-
-@mixin eachExtends($theme)
-{
-    $result: false;
-    $childs: themeGetChilds($theme);
-
-    @include resolveExtends( $theme );
-
-    @if length( $childs ) > 0 {
-        @each $child in $childs {
-            @include resolveExtends( $child );
-        }
-    }
-}
-
-@mixin resolveExtends($theme)
-{
-    @if not index( $themesExtends, $theme ) {
-        $properties: themeGet( $theme, "properties" );
-
-        @debug "%#{$theme} {";
-        %#{$theme} {
-            @each $property, $value in $properties {
-                #{$property}: #{$value};
-                @debug "     #{$property}: #{$value};";
+        @if not index( $themesExtends, $theme ) {
+            %#{$theme} {
+                @each $property, $value in themeGetProperties( $theme ) {
+                    #{$property}: #{$value};
+                }
             }
+            $themesExtends: append( $themesExtends, $theme ) !global;
         }
-        @debug "}";
-
-        $themesExtends: append( $themesExtends, $theme ) !global;
     }
+
+    $build__themes: true !global;
 }
 
 //////////////////////////////
 
-@function eachTheme($theme)
+@function resolveConflictsFor($theme)
 {
-    $result: false;
-    $childs: themeGetDirectChilds( $theme );
-    $result: mergeTheme( $theme );
+    $conflicts: ();
 
-    @if length( $childs ) > 0 {
-        $result: map($childs, "eachTheme");
+    // Creo la mappa dei conflitti per ogni proprietà del tema
+    @each $property, $value in themeGetProperties( $theme ) {
+        $conflicts: updateParentsMatch(
+            $conflicts,
+            getParentsConflicts( $theme, $property ),
+            $property
+        );
     }
 
-    @return $result;
-}
-
-@function mergeTheme($theme)
-{
-    @debug "---------- MERGE THEME: #{$theme} ----------";
-    $themeProperties: themeGet($theme, "properties");
-
-    $conflicts: mergeThemeEachProperties( $theme, $themeProperties );
-
-    @debug "conflicts:";
-    @debug $conflicts;
-
+    // creo ed setto la nuove classi con la risoluzione dei conflitti
     @each $parent, $parentConflicts in $conflicts {
         $extendName: $parent + "__" + $theme;
-        // Salvo il nuovo tema
-        @debug "creo la classe " + $extendName;
-        $t: addTheme($extendName, $parentConflicts, true);
-
-        // Rimuovo i conflitti
-
-        @debug "Rimuovo le proprietà da " + $parent;
+        $t: ap-create-theme($extendName, $parentConflicts, true);
         $t: themeRemoveProperties($parent, $parentConflicts);
-
-
-        @debug "Aggiungo la classe " + $extendName + " a #{$parent}";
-        $t: themeSetDirectParent($parent, $extendName);
-
-
-        // Aggiungo il nuovo tema ai figli (o ai fratelli di theme [tranne theme che ha la sua proprietà])
-
-        @debug "Aggiungo la classe " + $extendName + " a: ";
+        $t: themeAddParents(true, $parent, $extendName);
         $t: themeSetWhereParentIs($parent, $extendName, $theme);
-        @debug $t;
     }
 
     @return null;
 }
 
-@function mergeThemeEachProperties($theme, $themeProperties)
+/**
+ * Ritorna la lista dei 'parent' con cui il tema $theme
+ * va in conflitto con la proprietà $property.
+ */
+@function getParentsConflicts($theme, $property)
 {
     $result: ();
-    @each $property, $value in $themeProperties {
-        $parents: themeEachDirectParents($theme, "checkParentHasProperty", ($theme, $property));
-        @if $parents {
-            @each $parent in $parents {
-                //@debug "nel tema #{$theme} è presente la proprietà #{$property} che è settanta anche nel padre #{$parent} ";
-                $result: updateParentMatch($result, $parent, $property);
-            }
+    $parents: toList( themeGetParents( $theme, true ) );
+
+    @each $parent in $parents {
+        @if themeHasProperty( $parent, $property ) != null {
+            $result: if( not index( $result, $parent ), append( $result, $parent ), $result );
+        } @else {
+            $result: join( $result, getParentsConflicts($parent, $property)); // Ricorsione per controllo confilitto sui parent
         }
     }
+
     @return $result;
 }
 
-@function updateParentMatch($result, $parent, $property)
+/**
+ * Modfico la mappa $result aggiungendo il conflitto con la nuova proprietà
+ */
+@function updateParentsMatch($result, $parents, $property)
 {
-    $parentPropertyValue: themeGetProperty($parent, $property);
+    @each $parent in $parents {
+        $parentPropertyValue: themeGetProperty($parent, $property);
 
-    @if not map-has-key($result, $parent) {
-        $result: map-deep-set($result, $parent, ( $property: $parentPropertyValue ) );
-    } @else {
-        $resultProperties: map-deep-get($result, $parent);
-        $resultProperties: map-deep-set($resultProperties, $property, $parentPropertyValue);
-        $result: map-deep-set($result, $parent, $resultProperties);
+        @if not map-has-key($result, $parent) {
+            $result: map-deep-set($result, $parent, ( $property: $parentPropertyValue ) );
+        } @else {
+            $resultProperties: map-deep-get($result, $parent);
+            $resultProperties: map-deep-set($resultProperties, $property, $parentPropertyValue);
+            $result: map-deep-set($result, $parent, $resultProperties);
+        }
     }
 
     @return $result;

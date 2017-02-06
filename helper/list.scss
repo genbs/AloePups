@@ -1,5 +1,9 @@
 @function toList($list)
 {
+    @if not $list {
+        @return ();
+    }
+
     $type: type-of($list);
     @return if( $type == "string" or $type == "number"
         , ( $list )
