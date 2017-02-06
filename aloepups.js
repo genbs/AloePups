@@ -15,9 +15,7 @@
          */
         constructor()
         {
-            let div = document.createElement( 'div' )
-            div.id = '__aloepups'
-            document.body.appendChild( div )
+            var div = this.getAloePupsElement()
 
             try {
                 this.configs = JSON.parse( JSON.parse( window.getComputedStyle( div ).content ) )
@@ -28,6 +26,15 @@
             }
 
             div.remove();
+        }
+
+        getAloePupsElement()
+        {
+            let div = document.createElement( 'div' )
+            div.id = '__aloepups'
+            document.body.appendChild( div )
+
+            return div
         }
 
         /**
