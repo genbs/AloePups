@@ -99,10 +99,10 @@
 //    Classi utili per la manipolazione delle proprietà
 ////////////////////////////////////////////////////////////
 
-@function themeGetProperty( $theme, $property ) { @return map-get( themeGetProperties($theme), $property ); }
 @function themeGetProperties( $theme )          { @return themeGet( $theme, "properties" ); }
-@function themeHasProperty( $theme, $property ) { @return map-has-key( themeGetProperty($theme), $property ); }
-@function themePropertiesLength( $theme )       { @return length( themeGet( $theme, "properties" ) ); }
+@function themeGetProperty( $theme, $property ) { @return map-get( themeGetProperties( $theme ), $property ); }
+@function themeHasProperty( $theme, $property ) { @return map-has-key( themeGetProperties( $theme ), $property ); }
+@function themePropertiesLength( $theme )       { @return length( themeGetProperties( $theme ) ); }
 
 @function themeRemoveProperties($theme, $properties)
 {

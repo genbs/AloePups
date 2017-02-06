@@ -106,7 +106,7 @@
     $parents: toList( themeGetParents( $theme, true ) );
 
     @each $parent in $parents {
-        @if themeHasProperty( $parent, $property ) != null {
+        @if themeHasProperty( $parent, $property ) {
             $result: if( not index( $result, $parent ), append( $result, $parent ), $result );
         } @else {
             $result: join( $result, getParentsConflicts($parent, $property)); // Ricorsione per controllo confilitto sui parent
@@ -123,7 +123,6 @@
 {
     @each $parent in $parents {
         $parentPropertyValue: themeGetProperty($parent, $property);
-
         @if not map-has-key($result, $parent) {
             $result: map-deep-set($result, $parent, ( $property: $parentPropertyValue ) );
         } @else {
