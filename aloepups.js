@@ -28,6 +28,9 @@
             div.remove();
         }
 
+        /**
+         * Crea l'elemento con i settaggi in fromato JSON nell'attrivuto content
+         */
         getAloePupsElement()
         {
             let div = document.createElement( 'div' )

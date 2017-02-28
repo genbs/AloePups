@@ -6,29 +6,41 @@
     'helper/aloepups',
     'helper/map',
     'helper/list',
-    'helper/string';
+    'helper/string'
+;
 
 @import
     'scales/scalesConfig',
-    'scales/scalesHelper';
+    'scales/scalesHelper'
+;
 
 @import
     'palette/paletteConfig',
-    'palette/paletteHelper';
+    'palette/paletteHelper'
+;
 
 @import
     'animation/animation',
     'animation/animationConfig',
-    'animation/animationHelper';
+    'animation/animationHelper'
+;
 
 @import
     'media/media',
     'media/mediaConfig',
-    'media/mediaHelper';
+    'media/mediaHelper'
+;
 
 @import
     'spacings/spacingsConfig',
-    'spacings/spacingsHelper';
+    'spacings/spacingsHelper'
+;
+
+@import
+    'themes/themes',
+    'themes/themesConfig',
+    'themes/themesHelper'
+;
 
 //////////////////////////////
 

@@ -147,7 +147,7 @@
         , $value
         , if($type == "map"
             , toJSON($value)
-            , '"' + $value + '"'
+            , '"' + if( not $value, 'null', $value ) + '"'
           )
     );
 }

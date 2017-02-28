@@ -80,10 +80,10 @@
  * @param  {$theme} $extend       tema da aggiungere
  * @param  {$theme} $excludeTheme tema a cui non verrà aggiunto $extend, ossia quello che ha generato la classe di conflitto
  */
-@function themeSetWhereParentIs($parent, $extend, $excludeTheme)
+@function themeSetWhereParentIs($parent, $extend, $excludeTheme: null)
 {
     $result: ();
-    $exclude: join(($excludeTheme), themeGetChilds($excludeTheme));
+    $exclude: if($excludeTheme, join(($excludeTheme), themeGetChilds($excludeTheme)), ());
 
     @each $theme, $options in $themes {
         $parents: themeGetParents($theme);

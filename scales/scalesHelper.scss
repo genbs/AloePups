@@ -1,3 +1,51 @@
+/**
+ * Helpers
+ */
+
+/**
+ * Golden ratio
+ * (Public)
+ */
+$phi: 1.618033988749895;
+
+/**
+ * Golden sections
+ * (Public)
+ */
+$base:  100%;
+$gld10: $base / $phi; $gld9:  $base - $gld10;
+$gld8:  $gld9 / $phi; $gld7:  $gld9 - $gld8;
+$gld6:  $gld7 / $phi; $gld5:  $gld7 - $gld6;
+$gld4:  $gld5 / $phi; $gld3:  $gld5 - $gld4;
+$gld2:  $gld3 / $phi; $gld1:  $gld3 - $gld2;
+
+$golden-sections: (
+    gld10: $gld10, gld9: $gld9, gld8: $gld8, gld7: $gld7, gld6: $gld6,
+     gld5: $gld5,  gld4: $gld4, gld3: $gld3, gld2: $gld2, gld1: $gld1
+);
+
+/**
+ * Ratios
+ * (Public)
+ */
+$ratios: (
+    minor-second:     1.067,    major-second:     1.125,
+    minor-third:      1.2,      major-third:      1.25,
+    perfect-fourth:   1.333,    augmented-fourth: 1.414,
+    perfect-fifth:    1.5,      minor-sixth:      1.6,
+    phi:              $phi,     golden:           $phi,
+    major-sixth:      1.667,    minor-seventh:    1.778,
+    major-seventh:    1.875,    octave:           2,
+    major-tenth:      2.5,      major-eleventh:   2.667,
+    major-twelfth:    3,        double-octave:    4,
+);
+
+//////////////////////////////
+
+/**
+ * Modular scale
+ * (Public)
+ */
 @function modular-scale($increment, $value: base(), $ratio: ratio())
 {
 	@for $i from 1 through $increment {
@@ -7,15 +55,39 @@
 	@return $value;
 }
 
+/**
+ * Modular scale alias
+ * (Public)
+ */
 @function ms($increment, $value: base(), $ratio: ratio())
 {
 	@return modular-scale($increment, $value, $ratio);
 }
 
+/**
+ * Golden section
+ * (Public)
+ */
 @function golden-section($section)
 {
-	@return ap('scales.golden-sections.gld#{$section}');
+	@return map-get($golden-sections, 'gld#{$section}');
 }
+
+/**
+ * Fibonacci
+ * (Public)
+ */
+@function fib($n, $unit)
+{
+    $prec: 1; $f: 1;
+    @for $i from 1 to $n {
+        $t: $f;
+        $f: $f + $prec;
+        $prec: $t;
+    }
+    @return $f + $unit;
+}
+
 
 //////////////////////////////
 

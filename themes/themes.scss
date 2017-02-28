@@ -5,11 +5,25 @@
  */
 @function ap-create-theme($theme, $options, $extend: false)
 {
-    $themes: map-deep-set(
-        $themes,
-        $theme,
-        sanitizeThemeOptions( $options, $extend )
-    ) !global;
+    $themeOptions: sanitizeThemeOptions( $options, $extend );
+
+    @if map-has-key($themes, $theme) {
+        // Recupero il tema precedente
+        $parents: map-get( $themeOptions, 'directParents' );
+
+        // Setto le nuove proprietà e i nuovi padri al vecchio tema
+        @each $parent in $parents {
+            $t: themeSetWhereParentIs( $theme, $parent );
+        }
+
+        // Unisco le nuovo e le vecchie propietà
+        $properties: map-merge( themeGetProperties($theme), map-get( $themeOptions, 'properties' ) );
+
+        // Salvo il tema
+        $themes: map-deep-set( $themes, $theme, 'properties', $properties ) !global;
+    } @else {
+        $themes: map-deep-set( $themes, $theme, $themeOptions ) !global;
+    }
 
     @return themeSetParentChildFromChild($theme);
 }
@@ -24,7 +38,7 @@
         @error "Compilare i temi inserendo chimando la mixin \'ap-compile-themes()\' dopo aver creato tutti i temi e prima di settarli.";
     }
 
-    @if not map-get( $themes, $theme ){
+    @if not map-has-key( $themes, $theme ){
         @error "Il tema #{$theme} non è stato trovato.";
     }
 
