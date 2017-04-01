@@ -4,6 +4,10 @@
 {
     $mq: '';
 
+    @if(type-of($media) == 'string') {
+        $media: mq($media);
+    }
+
     @if(map-has-key($media, 'type')){
         $mq:    map-get($media, 'type');
         $media: map-remove($media, 'type');

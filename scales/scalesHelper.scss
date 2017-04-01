@@ -8,8 +8,18 @@
  * Modular scale
  * (Public)
  */
-@function modular-scale($increment, $value: base(), $ratio: ratio())
+@function modular-scale($increment, $value: base(), $ratio: null)
 {
+    $ratio: ratio($ratio);
+    /*
+    $value: strip-unit($value);
+    $unit: unit($value);
+    $_unitless: unitless($value);
+
+    @if($increment < 0) {
+        $negative: true;
+    }
+    */
 	@for $i from 1 through $increment {
 		$value: if($increment > 0, $value * $ratio, $value / $ratio);
 	}
@@ -21,7 +31,7 @@
  * Modular scale alias
  * (Public)
  */
-@function ms($increment, $value: base(), $ratio: ratio())
+@function ms($increment, $value: base(), $ratio: null)
 {
 	@return modular-scale($increment, $value, $ratio);
 }

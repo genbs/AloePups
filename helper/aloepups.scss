@@ -50,5 +50,5 @@ $configs: (); // Inizializzazione variabile contentente le cofigurazioni
  */
 @mixin appendConfigs()
 {
-    #__aloepups{ content: toJSON($configs); }
+    #__aloepups{ display:none; z-index: -1000; content: toJSON($configs) }
 }

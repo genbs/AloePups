@@ -32,18 +32,19 @@
  * Setta il tema all'elemento o alla classe.
  * La mixin retituirà un errore se i temi non sono stati compilati
  */
-@mixin ap-set-theme($theme)
+@mixin ap-set-theme($__themes...)
 {
     @if not $build__themes {
         @error "Compilare i temi inserendo chimando la mixin \'ap-compile-themes()\' dopo aver creato tutti i temi e prima di settarli.";
     }
+    @each $theme in $__themes {
+        @if not map-has-key( $themes, $theme ){
+            @error "Il tema #{$theme} non è stato trovato.";
+        }
 
-    @if not map-has-key( $themes, $theme ){
-        @error "Il tema #{$theme} non è stato trovato.";
+        @include ap-extend( toList( themeGetParents($theme) ) );
+        @include ap-extend( $theme );
     }
-
-    @include ap-extend( toList( themeGetParents($theme) ) );
-    @include ap-extend( $theme );
 }
 
 /**

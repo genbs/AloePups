@@ -10,6 +10,18 @@
 
 //////////////////////////////
 
+@function a-s($speed: base_speed())
+{
+    @return animation-speed($speed);
+}
+
+@function a-e($easing: base_easing())
+{
+    @return animation-easing($easing);
+}
+
+//////////////////////////////
+
 
 @function base_speed(){
     @return ap('animation.base_speed');

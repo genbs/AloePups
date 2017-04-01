@@ -2,7 +2,7 @@
   "name": "aloepups",
   "version": "1.0.1",
   "description": "SASS Framework",
-  "main": "aloepups.scss",
+  "main": "aloepups.js",
   "scripts": {
   },
   "repository": {

@@ -1,80 +1,136 @@
-((window, document) => {
+/**
+ * AloePups
+ * autore:          Gennaro Bosone < gennaro.bs@gmail.com >
+ * data creazione:  31-01-2017
+ *
+ * Interfaccia al Framework SASS AloePups
+ */
+class AloePups
+{
 
     /**
-     * AloePups
-     * autore:          Gennaro Bosone < gennaro.bs@gmail.com >
-     * data creazione:  31-01-2017
-     *
-     * Interfaccia al Framework SASS AloePups
+     * Caricamento delle configurazioni dall'elemento #__aloepups
      */
-    class AloePups
+    constructor()
     {
+        let div = this.getAloePupsElement()
 
-        /**
-         * Caricamento delle configurazioni dall'elemento #__aloepups
-         */
-        constructor()
-        {
-            var div = this.getAloePupsElement()
-
-            try {
-                this.configs = JSON.parse( JSON.parse( window.getComputedStyle( div ).content ) )
-                this.scales = this.configs.scales
-                this.palette = this.configs.palette
-            } catch (e) {
-                console.error('[AloePups]\tImpossibile caricare i settaggi.');
-            }
-
-            div.remove();
+        try {
+            let content = window.getComputedStyle( div ).content;
+            Object.assign(this, this.parse(content))
+            this.sanitize()
+        } catch (e) {
+            console.error('[AloePups]\tImpossibile caricare i settaggi.');
         }
 
-        /**
-         * Crea l'elemento con i settaggi in fromato JSON nell'attrivuto content
-         */
-        getAloePupsElement()
-        {
-            let div = document.createElement( 'div' )
-            div.id = '__aloepups'
-            document.body.appendChild( div )
-
-            return div
-        }
-
-        /**
-         * Ritorna l'unità di misura del argomento
-         */
-        getUnit(value)
-        {
-            return typeof value !== 'number'
-                        ? value.replace( parseFloat( value ), '' )
-                        : ''
-        }
-
-        /**
-         * Modular scale
-         * @param { Number } Il numero di incrementi del valore di base
-         * @param { Number, Optional } valore di base
-         * @param { Number, Optional } incremento del valore di base
-         */
-        scale(increment, value, ratio)
-        {
-            value = parseFloat( value || this.scales.base )
-            ratio = parseFloat( ratio || this.scales.ratios[ this.scales.ratio ] )
-
-            for ( let i = increment; i > 0; i-- )
-                value = increment > 0 ? value * ratio : value / ratio
-
-            return value + this.getUnit(value)
-        }
+        div.remove();
     }
 
-    //////////////////////////////
+    /**
+     * Parse JSON from #__aloepups content
+     *
+     * @param {String} content
+     */
+    parse(content)
+    {
+        content = content.replace(/[\\]/g, '')
 
-    document
-        .addEventListener(
-            'DOMContentLoaded', () => window.aloepups = new AloePups()
-        )
+        content = content.substr(1).substr(0, content.length - 2).replace(/[\']/g, '"')
 
-    //////////////////////////////
+        return JSON.parse(content)
+    }
 
-})( window, document )
+    /**
+     * Crea l'elemento con i settaggi in fromato JSON nell'attrivuto content
+     */
+    getAloePupsElement()
+    {
+        let div = document.createElement( 'div' )
+        div.id = '__aloepups'
+        document.body.appendChild( div )
+
+        return div
+    }
+
+    /**
+     * Ritorna l'unità di misura del argomento
+     */
+    getUnit(value)
+    {
+        return typeof value !== 'number'
+                    ? value.replace( parseFloat( value ), '' )
+                    : ''
+    }
+
+    /**
+     * Modular scale
+     * @param { Number } Il numero di incrementi del valore di base
+     * @param { Number, Optional } valore di base
+     * @param { Number, Optional } incremento del valore di base
+     */
+    scale(increment, value, ratio)
+    {
+        value = parseFloat( value || this.scales.base )
+        ratio = parseFloat( ratio || this.scales.ratios[ this.scales.ratio ] )
+
+        for ( let i = increment; i > 0; i-- )
+            value = increment > 0 ? value * ratio : value / ratio
+
+        return value + this.getUnit(value)
+    }
+
+    /**
+     * Ritorna una velocità settata in pupsConfig
+     *
+     * @param {String} s
+     * @returns int
+     */
+    speed(s)
+    {
+        return this.animation.speeds[s ? s : this.animation.base_speed]
+    }
+
+    /**
+     * Cancella un timeout
+     */
+    clearDelay(d) {
+        d && window.clearTimeout(d);
+    }
+
+    /**
+     * Timeout function
+     */
+    delay(callback, speed, context)
+    {
+        return window.setTimeout(e => { callback.call(context) }, typeof speed == 'string' ? this.speed(speed) : speed)
+    }
+
+    /**
+     * Sanitizza l'oggetto configs
+     */
+    sanitize()
+    {
+        if(this.animation && this.animation.speeds)
+            Object.keys(this.animation.speeds).forEach(k => {
+                this.animation.speeds[k] = this.stringToMilliseconds(this.animation.speeds[k])
+            })
+    }
+
+    /**
+     * Converte un valore di tipo string (s, ms)
+     *
+     * @param {String} str
+     * @return {Float} tempo
+     */
+    stringToMilliseconds(str)
+    {
+        if(str.indexOf('ms') >= 0)
+            return parseFloat(str);
+        else if(str.indexOf('s') >= 0)
+            return parseFloat(str) * 1000;
+
+        return parseFloat(str);
+    }
+}
+
+export default new AloePups()
