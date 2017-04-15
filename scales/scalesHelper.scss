@@ -15,14 +15,14 @@
     $value: strip-unit($value);
     $unit: unit($value);
     $_unitless: unitless($value);
-
     */
+    $negative: false;
     @if($increment < 0) {
         $negative: true;
         $increment: $increment * -1
     }
 	@for $i from 1 through $increment {
-		$value: if($negative, $value * $ratio, $value / $ratio);
+		$value: if($negative, $value / $ratio, $value * $ratio);
 	}
 
 	@return $value;
