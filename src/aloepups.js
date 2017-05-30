@@ -63,6 +63,16 @@ class AloePups
     }
 
     /**
+     * Get modular scale ratio
+     * 
+     * @return float
+     */
+    ratio()
+    {
+        return this.scales.ratios[this.scales.ratio]
+    }
+
+    /**
      * Modular scale
      * @param { Number } Il numero di incrementi del valore di base
      * @param { Number, Optional } valore di base
@@ -73,7 +83,7 @@ class AloePups
         value = parseFloat( value || this.scales.base )
         ratio = parseFloat( ratio || this.scales.ratios[ this.scales.ratio ] )
 
-        for ( let i = increment; i > 0; i-- )
+        for ( let i = Math.abs(increment); i > 0; i-- )
             value = increment > 0 ? value * ratio : value / ratio
 
         return value + this.getUnit(value)
