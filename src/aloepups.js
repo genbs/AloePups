@@ -13,17 +13,25 @@ class AloePups
      */
     constructor()
     {
-        let div = this.getAloePupsElement()
+        document.addEventListener('DOMContentLoaded', e => {
+            let div = this.getAloePupsElement()
 
-        try {
-            let content = window.getComputedStyle( div ).content;
-            Object.assign(this, this.parse(content))
-            this.sanitize()
-        } catch (e) {
-            console.error('[AloePups]\tImpossibile caricare i settaggi.');
-        }
+            try {
+                let content = window.getComputedStyle( div ).content;
+                Object.assign(this, this.parse(content))
+                this.sanitize()
+            } catch (e) {
+                console.error('[AloePups]\tImpossibile caricare i settaggi.');
+            }
 
-        div.remove();
+            div.remove();
+
+            window.addEventListener('resize', e => { 
+                this.HTMLFontSize = window.getComputedStyle(document.body).getPropertyValue('font-size');
+            }, { passive: true })
+
+            this.HTMLFontSize = window.getComputedStyle(document.body).getPropertyValue('font-size');
+        })
     }
 
     /**
@@ -81,7 +89,7 @@ class AloePups
     scale(increment, value, ratio)
     {
         value = parseFloat( value || this.scales.base )
-        ratio = parseFloat( ratio || this.scales.ratios[ this.scales.ratio ] )
+        ratio = parseFloat( ratio || this.ratio() )
 
         for ( let i = Math.abs(increment); i > 0; i-- )
             value = increment > 0 ? value * ratio : value / ratio
@@ -98,6 +106,51 @@ class AloePups
     speed(s)
     {
         return this.animation.speeds[s ? s : this.animation.base_speed]
+    }
+
+    /**
+     * Ritorna un valore
+     *
+     * @param {String} s
+     * @returns int
+     */
+    spacing(s)
+    {
+        return this.spacings.sizes[s]
+    }
+
+    /**
+     * @param {String} value
+     * @return float
+     */
+    remToPX(value)
+    {
+        const unit = this.getUnit(value)
+
+        switch (unit) {
+            case 'em': 
+            case 'rem': 
+                return parseFloat(value) * this.HTMLFontSize
+            case 'px': 
+                return parseFloat(value)
+        }
+    }
+
+    /**
+     * @param {String} value
+     * @return float
+     */
+    pxToREM(value)
+    {
+        const unit = this.getUnit(value)
+
+        switch (unit) {
+            case 'em': 
+            case 'rem': 
+                return parseFloat(value)
+            case 'px': 
+                return parseFloat(value) / this.HTMLFontSize
+        }
     }
 
     /**

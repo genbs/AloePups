@@ -95,19 +95,29 @@ var AloePups = function () {
      * Caricamento delle configurazioni dall'elemento #__aloepups
      */
     function AloePups() {
+        var _this = this;
+
         _classCallCheck(this, AloePups);
 
-        var div = this.getAloePupsElement();
+        document.addEventListener('DOMContentLoaded', function (e) {
+            var div = _this.getAloePupsElement();
 
-        try {
-            var content = window.getComputedStyle(div).content;
-            Object.assign(this, this.parse(content));
-            this.sanitize();
-        } catch (e) {
-            console.error('[AloePups]\tImpossibile caricare i settaggi.');
-        }
+            try {
+                var content = window.getComputedStyle(div).content;
+                Object.assign(_this, _this.parse(content));
+                _this.sanitize();
+            } catch (e) {
+                console.error('[AloePups]\tImpossibile caricare i settaggi.');
+            }
 
-        div.remove();
+            div.remove();
+
+            window.addEventListener('resize', function (e) {
+                _this.HTMLFontSize = window.getComputedStyle(document.body).getPropertyValue('font-size');
+            }, { passive: true });
+
+            _this.HTMLFontSize = window.getComputedStyle(document.body).getPropertyValue('font-size');
+        });
     }
 
     /**
@@ -152,6 +162,18 @@ var AloePups = function () {
         }
 
         /**
+         * Get modular scale ratio
+         * 
+         * @return float
+         */
+
+    }, {
+        key: 'ratio',
+        value: function ratio() {
+            return this.scales.ratios[this.scales.ratio];
+        }
+
+        /**
          * Modular scale
          * @param { Number } Il numero di incrementi del valore di base
          * @param { Number, Optional } valore di base
@@ -162,9 +184,9 @@ var AloePups = function () {
         key: 'scale',
         value: function scale(increment, value, ratio) {
             value = parseFloat(value || this.scales.base);
-            ratio = parseFloat(ratio || this.scales.ratios[this.scales.ratio]);
+            ratio = parseFloat(ratio || this.ratio());
 
-            for (var i = increment; i > 0; i--) {
+            for (var i = Math.abs(increment); i > 0; i--) {
                 value = increment > 0 ? value * ratio : value / ratio;
             }return value + this.getUnit(value);
         }
@@ -180,6 +202,57 @@ var AloePups = function () {
         key: 'speed',
         value: function speed(s) {
             return this.animation.speeds[s ? s : this.animation.base_speed];
+        }
+
+        /**
+         * Ritorna un valore
+         *
+         * @param {String} s
+         * @returns int
+         */
+
+    }, {
+        key: 'spacing',
+        value: function spacing(s) {
+            return this.spacings.sizes[s];
+        }
+
+        /**
+         * @param {String} value
+         * @return float
+         */
+
+    }, {
+        key: 'remToPX',
+        value: function remToPX(value) {
+            var unit = this.getUnit(value);
+
+            switch (unit) {
+                case 'em':
+                case 'rem':
+                    return parseFloat(value) * this.HTMLFontSize;
+                case 'px':
+                    return parseFloat(value);
+            }
+        }
+
+        /**
+         * @param {String} value
+         * @return float
+         */
+
+    }, {
+        key: 'pxToREM',
+        value: function pxToREM(value) {
+            var unit = this.getUnit(value);
+
+            switch (unit) {
+                case 'em':
+                case 'rem':
+                    return parseFloat(value);
+                case 'px':
+                    return parseFloat(value) / this.HTMLFontSize;
+            }
         }
 
         /**
@@ -211,10 +284,10 @@ var AloePups = function () {
     }, {
         key: 'sanitize',
         value: function sanitize() {
-            var _this = this;
+            var _this2 = this;
 
             if (this.animation && this.animation.speeds) Object.keys(this.animation.speeds).forEach(function (k) {
-                _this.animation.speeds[k] = _this.stringToMilliseconds(_this.animation.speeds[k]);
+                _this2.animation.speeds[k] = _this2.stringToMilliseconds(_this2.animation.speeds[k]);
             });
         }
 
