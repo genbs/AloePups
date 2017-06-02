@@ -99,25 +99,23 @@ var AloePups = function () {
 
         _classCallCheck(this, AloePups);
 
-        document.addEventListener('DOMContentLoaded', function (e) {
-            var div = _this.getAloePupsElement();
+        var div = this.getAloePupsElement();
 
-            try {
-                var content = window.getComputedStyle(div).content;
-                Object.assign(_this, _this.parse(content));
-                _this.sanitize();
-            } catch (e) {
-                console.error('[AloePups]\tImpossibile caricare i settaggi.');
-            }
+        try {
+            var content = window.getComputedStyle(div).content;
+            Object.assign(this, this.parse(content));
+            this.sanitize();
+        } catch (e) {
+            console.error('[AloePups]\tImpossibile caricare i settaggi.');
+        }
 
-            div.remove();
+        div.remove();
 
-            window.addEventListener('resize', function (e) {
-                _this.HTMLFontSize = window.getComputedStyle(document.body).getPropertyValue('font-size');
-            }, { passive: true });
-
+        window.addEventListener('resize', function (e) {
             _this.HTMLFontSize = window.getComputedStyle(document.body).getPropertyValue('font-size');
-        });
+        }, { passive: true });
+
+        this.HTMLFontSize = window.getComputedStyle(document.body).getPropertyValue('font-size');
     }
 
     /**

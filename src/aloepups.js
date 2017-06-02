@@ -13,25 +13,23 @@ class AloePups
      */
     constructor()
     {
-        document.addEventListener('DOMContentLoaded', e => {
-            let div = this.getAloePupsElement()
+        let div = this.getAloePupsElement()
 
-            try {
-                let content = window.getComputedStyle( div ).content;
-                Object.assign(this, this.parse(content))
-                this.sanitize()
-            } catch (e) {
-                console.error('[AloePups]\tImpossibile caricare i settaggi.');
-            }
+        try {
+            let content = window.getComputedStyle( div ).content;
+            Object.assign(this, this.parse(content))
+            this.sanitize()
+        } catch (e) {
+            console.error('[AloePups]\tImpossibile caricare i settaggi.');
+        }
 
-            div.remove();
+        div.remove();
 
-            window.addEventListener('resize', e => { 
-                this.HTMLFontSize = window.getComputedStyle(document.body).getPropertyValue('font-size');
-            }, { passive: true })
-
+        window.addEventListener('resize', e => { 
             this.HTMLFontSize = window.getComputedStyle(document.body).getPropertyValue('font-size');
-        })
+        }, { passive: true })
+
+        this.HTMLFontSize = window.getComputedStyle(document.body).getPropertyValue('font-size');
     }
 
     /**
