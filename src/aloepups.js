@@ -26,10 +26,10 @@ class AloePups
         div.remove();
 
         window.addEventListener('resize', e => { 
-            this.HTMLFontSize = window.getComputedStyle(document.body).getPropertyValue('font-size');
+            this.HTMLFontSize = parseFloat(window.getComputedStyle(document.body).getPropertyValue('font-size'))
         }, { passive: true })
 
-        this.HTMLFontSize = window.getComputedStyle(document.body).getPropertyValue('font-size');
+        this.HTMLFontSize = parseFloat(window.getComputedStyle(document.body).getPropertyValue('font-size'))
     }
 
     /**

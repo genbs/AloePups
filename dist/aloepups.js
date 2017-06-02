@@ -112,10 +112,10 @@ var AloePups = function () {
         div.remove();
 
         window.addEventListener('resize', function (e) {
-            _this.HTMLFontSize = window.getComputedStyle(document.body).getPropertyValue('font-size');
+            _this.HTMLFontSize = parseFloat(window.getComputedStyle(document.body).getPropertyValue('font-size'));
         }, { passive: true });
 
-        this.HTMLFontSize = window.getComputedStyle(document.body).getPropertyValue('font-size');
+        this.HTMLFontSize = parseFloat(window.getComputedStyle(document.body).getPropertyValue('font-size'));
     }
 
     /**
