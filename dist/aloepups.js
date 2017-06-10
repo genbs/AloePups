@@ -95,8 +95,6 @@ var AloePups = function () {
      * Caricamento delle configurazioni dall'elemento #__aloepups
      */
     function AloePups() {
-        var _this = this;
-
         _classCallCheck(this, AloePups);
 
         var div = this.getAloePupsElement();
@@ -111,11 +109,9 @@ var AloePups = function () {
 
         div.remove();
 
-        window.addEventListener('resize', function (e) {
-            _this.HTMLFontSize = parseFloat(window.getComputedStyle(document.body).getPropertyValue('font-size'));
-        }, { passive: true });
+        window.addEventListener('resize', function (e) {}, { passive: true });
 
-        this.HTMLFontSize = parseFloat(window.getComputedStyle(document.body).getPropertyValue('font-size'));
+        this.onResize();
     }
 
     /**
@@ -147,6 +143,38 @@ var AloePups = function () {
             document.body.appendChild(div);
 
             return div;
+        }
+
+        /**
+         * 
+         */
+
+    }, {
+        key: 'onResize',
+        value: function onResize() {
+            this.HTMLFontSize = parseFloat(window.getComputedStyle(document.body).getPropertyValue('font-size'));
+            this.windowHeight = window.innerHeight;
+            this.windowWidth = window.innerWidth;
+        }
+
+        /**
+         * Return window heigth
+         */
+
+    }, {
+        key: 'getWindowHeight',
+        value: function getWindowHeight() {
+            return this.windowWidth;
+        }
+
+        /**
+         * Return window width
+         */
+
+    }, {
+        key: 'getWindowHeight',
+        value: function getWindowHeight() {
+            return this.windowWidth;
         }
 
         /**
@@ -282,10 +310,10 @@ var AloePups = function () {
     }, {
         key: 'sanitize',
         value: function sanitize() {
-            var _this2 = this;
+            var _this = this;
 
             if (this.animation && this.animation.speeds) Object.keys(this.animation.speeds).forEach(function (k) {
-                _this2.animation.speeds[k] = _this2.stringToMilliseconds(_this2.animation.speeds[k]);
+                _this.animation.speeds[k] = _this.stringToMilliseconds(_this.animation.speeds[k]);
             });
         }
 
